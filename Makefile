@@ -15,7 +15,7 @@ CXX=$(shell which g++)
 PLUGINDIR=$(shell $(CC) -print-file-name=plugin)
 
 CFLAGS= -Wall -Wextra -g -fno-rtti -I$(PLUGINDIR)/include
-CXXFLAGS= -Wall -Wextra -g -fno-rtti -I$(PLUGINDIR)/include
+CXXFLAGS= -std=c++23 -Wall -Wextra -g -fno-rtti -I$(PLUGINDIR)/include
 LDFLAGS=
 LDADD=
 
