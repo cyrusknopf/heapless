@@ -1,10 +1,16 @@
 #include <cstddef>
 #include <print>
 #include <string_view>
+#include <vector>
 
 #include "gcc-plugin.h"
+
 #include "plugin-version.h"
 #include "plugin.h"
+#include "tree-core.h"
+#include "tree.h"
+#include "stringpool.h"
+#include "attribs.h"
 
 int plugin_is_GPL_compatible;
 
@@ -14,6 +20,8 @@ namespace hpl {
 using plugin_info = struct plugin_info;
 using plugin_gcc_version = struct plugin_gcc_version;
 using plugin_name_args = struct plugin_name_args;   
+using attr_spec = struct attribute_spec;
+using scoped_attr_specs = struct scoped_attribute_specs;
 }
 
 static hpl::plugin_info heapless_info =
@@ -31,6 +39,40 @@ static hpl::plugin_gcc_version heapless_gcc_ver =
     .configuration_arguments = ""
 };
 
+static auto
+handle_attribute(tree* node, tree attr_name, tree attrArguments, int flags,
+                 bool* no_add_attrs) -> tree
+{
+    std::println("Found attribute: {}", IDENTIFIER_POINTER(attr_name));
+
+    return NULL_TREE;
+}
+
+static hpl::attr_spec attr1 =
+{
+  .name = "attr1",
+  .min_length = 0,
+  .max_length = -1,
+  .decl_required = false,
+  .type_required = false,
+  .function_type_required = false,
+  .affects_type_identity = false,
+  .handler = handle_attribute
+};
+
+static std::vector<hpl::attr_spec> all_attrs{ attr1 };
+
+static const array_slice<const hpl::attr_spec> attrs{ all_attrs.data(), all_attrs.size() };
+
+static hpl::scoped_attr_specs specs{ .ns = "heapless", .attributes = attrs };
+
+static auto
+register_attributes(void* event_data, void* user_data) -> void
+{
+    // register_attribute(&attr1);
+    register_scoped_attributes(specs);
+}
+
 auto
 plugin_init(hpl::plugin_name_args* plugin_info,
             hpl::plugin_gcc_version* version) -> int
@@ -41,12 +83,21 @@ plugin_init(hpl::plugin_name_args* plugin_info,
     }
 
     const std::string_view plugin_name = plugin_info->base_name;
+    const char* name_chars = plugin_name.data();
     std::println("Using plugin: {}", plugin_name);
 
-    {
+    { // register info
       constexpr plugin_event event = PLUGIN_INFO;
       constexpr std::nullptr_t callback = nullptr;
-      register_callback(plugin_name.data(), event, callback, &heapless_info);
+      register_callback(name_chars, event, callback, &heapless_info);
     }
+
+    { // register attributes
+      constexpr plugin_event event = PLUGIN_ATTRIBUTES;
+      constexpr auto* callback = &register_attributes;
+      constexpr std::nullptr_t user_data = nullptr;
+      register_callback(name_chars, event, callback, user_data);
+    }
+
     return 0;
 }

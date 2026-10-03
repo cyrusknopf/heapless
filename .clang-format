@@ -27,4 +27,4 @@ IndentCaseLabels: true
 NamespaceIndentation: None
 PointerAlignment: Left
 SpaceAfterCStyleCast: true
-SortIncludes: CaseSensitive
+SortIncludes: Never
