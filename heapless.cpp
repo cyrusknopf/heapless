@@ -52,10 +52,10 @@ static hpl::attr_spec attr1 =
 {
   .name = "attr1",
   .min_length = 0,
-  .max_length = -1,
+  .max_length = 0,
   .decl_required = false,
-  .type_required = false,
-  .function_type_required = false,
+  .type_required = true,
+  .function_type_required = true,
   .affects_type_identity = false,
   .handler = handle_attribute
 };
@@ -69,7 +69,6 @@ static hpl::scoped_attr_specs specs{ .ns = "heapless", .attributes = attrs };
 static auto
 register_attributes(void* event_data, void* user_data) -> void
 {
-    // register_attribute(&attr1);
     register_scoped_attributes(specs);
 }
 
