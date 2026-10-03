@@ -1,3 +1,4 @@
+#include <cstddef>
 #include <print>
 #include <string_view>
 
@@ -39,7 +40,13 @@ plugin_init(hpl::plugin_name_args* plugin_info,
       return -1;
     }
 
-    const std::string_view plugin_name = plugin_info->full_name;
+    const std::string_view plugin_name = plugin_info->base_name;
     std::println("Using plugin: {}", plugin_name);
+
+    {
+      constexpr plugin_event event = PLUGIN_INFO;
+      constexpr std::nullptr_t callback = nullptr;
+      register_callback(plugin_name.data(), event, callback, &heapless_info);
+    }
     return 0;
 }
