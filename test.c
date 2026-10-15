@@ -1,8 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-int
-main() [[heapless::attr1]]
+[[heapless::attr1]] int main()
 {
   puts("Compiled");
   if (rand() % 2) {
