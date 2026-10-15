@@ -95,7 +95,9 @@ struct pass_driver final : public gcc::gimple_opt_pass
           tree fndecl = gimple_call_fndecl(stmt);
           const built_in_function fncode = DECL_FUNCTION_CODE(fndecl);
           if (fncode == BUILT_IN_MALLOC) {
-            error("malloc() used in %s function", hpl::noalloc::attr_traits::attr_name);
+            location_t loc = gimple_location(stmt);
+            error_at(loc, "malloc() used in %s function",
+                     hpl::noalloc::attr_traits::attr_name);
           }
         }
     }
