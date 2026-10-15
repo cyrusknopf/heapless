@@ -3,9 +3,6 @@
 
 [[heapless::attr1]] int main()
 {
-  puts("Compiled");
-  if (rand() % 2) {
-    return 1;
-  }
+  volatile void* bytes = malloc(10);
   return 0;
 }

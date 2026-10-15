@@ -137,6 +137,29 @@ struct pass1 final : gcc::gimple_opt_pass {
       }
       std::println("Function has attr");
 
+      basic_block bb;
+      FOR_ALL_BB_FN(bb, fun) {
+          gimple_stmt_iterator gsit;
+
+          for (gsit = gsi_start_bb(bb); !gsi_end_p(gsit); gsi_next(&gsit))
+          {
+            gimple* stmt = gsi_stmt(gsit);
+
+            if (!stmt) {
+                std::println("null stmt");
+                continue;
+            }
+
+            bool call = is_gimple_call(stmt);
+            bool builtin = gimple_call_builtin_p(stmt);
+            if (!call || !builtin) {
+                std::println("stmt was not builtin call");
+                continue;
+            }
+            std::println("stmt was builtin call");
+          }
+      }
+
       return 0;
     }
 
@@ -180,7 +203,7 @@ plugin_init(hpl::plugin_name_args* plugin_info,
           .pass = pass,
           .reference_pass_name = "cfg",
           .ref_pass_instance_number = 1,
-          .pos_op = PASS_POS_INSERT_BEFORE
+          .pos_op = PASS_POS_INSERT_AFTER
         };
         constexpr std::nullptr_t callback = nullptr;
 
