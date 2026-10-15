@@ -29,6 +29,8 @@
 #include "attribs.h"
 #include "diagnostic-core.h"
 
+#include "attrs/noalloc.h"
+
 int plugin_is_GPL_compatible;
 
 static constexpr std::string_view ver_err = "Plugin is for version {}.{}";
@@ -74,22 +76,20 @@ handle_attribute(tree* node, tree attr_name, tree attr_args, int flags,
     }
 
     warning(OPT_Wattributes, "%qE applied to non-function", attr_name);
-    const char* name = get_tree_code_name(code);
     *no_add_attrs = true;
 
     return NULL_TREE;
 }
 
-const static char* const attr_name = "noalloc\0";
 static hpl::attr_spec attr1 =
 {
-  .name = attr_name,
-  .min_length = 0,
-  .max_length = 0,
-  .decl_required = true,
-  .type_required = false,
-  .function_type_required = false,
-  .affects_type_identity = false,
+  .name = hpl::noalloc::attr_name,
+  .min_length = hpl::noalloc::min_length,
+  .max_length = hpl::noalloc::max_length,
+  .decl_required = hpl::noalloc::decl_required,
+  .type_required = hpl::noalloc::type_required,
+  .function_type_required = hpl::noalloc::function_type_required,
+  .affects_type_identity = hpl::noalloc::affects_type_identity,
   .handler = handle_attribute
 };
 
@@ -121,12 +121,13 @@ struct pass1 final : gcc::gimple_opt_pass {
     explicit pass1(gcc::context* ctx)
     : gcc::gimple_opt_pass(pass1_data, ctx) { }
 
-    auto execute(function* fun) -> unsigned int final
+    auto
+    execute(function* fun) -> unsigned int final
     {
 
       union tree_node* decl = fun->decl;
       union tree_node* fun_attrs = DECL_ATTRIBUTES(decl);
-      bool has_attr = lookup_attribute(attr_name, fun_attrs);
+      bool has_attr = lookup_attribute(hpl::noalloc::attr_name, fun_attrs);
       if (!has_attr) {
         return 0;
       }
@@ -148,7 +149,7 @@ struct pass1 final : gcc::gimple_opt_pass {
             tree fndecl = gimple_call_fndecl(stmt);
             const built_in_function fncode = DECL_FUNCTION_CODE(fndecl);
             if (fncode == BUILT_IN_MALLOC) {
-                error("malloc() used in %s function", attr_name);
+              error("malloc() used in %s function", hpl::noalloc::attr_name);
             }
           }
       }
@@ -156,7 +157,8 @@ struct pass1 final : gcc::gimple_opt_pass {
       return 0;
     }
 
-    auto clone() -> pass1* final
+    auto
+    clone() -> pass1* final
     {
       return this;
     }
