@@ -14,12 +14,15 @@ BreakAfterReturnType: All
 
 AllowShortFunctionsOnASingleLine: None
 AllowShortBlocksOnASingleLine: Never
-AllowShortIfStatementsOnASingleLine: Never
-AllowShortLoopsOnASingleLine: false
+AllowShortIfStatementsOnASingleLine: AllIfsAndElse
+AllowShortLoopsOnASingleLine: true
 BraceWrapping:
-  SplitEmptyFunction: true
+  SplitEmptyFunction: false
   SplitEmptyRecord: true
   SplitEmptyNamespace: true
+  AfterStruct: true
+  AfterClass: true
+  AfterControlStatement: Never
 
 Cpp11BracedListStyle: false
 

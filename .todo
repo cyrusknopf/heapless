@@ -1,6 +1,3 @@
-- generic consteval function <AttrT> to register gcc attribute
-- write pass logic in hpl::noalloc
-- make function analysis recursive
-
 - cache allocating functions in name-indexed allocating set (ODR should keep this correct)
+- ensure recursive functions dont cause infinite loop in pass
 - investigate operator new
