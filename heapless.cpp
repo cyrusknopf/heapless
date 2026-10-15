@@ -67,8 +67,6 @@ static auto
 handle_attribute(tree* node, tree attr_name, tree attr_args, int flags,
                  bool* no_add_attrs) -> tree
 {
-    std::println("Found attribute: {}", IDENTIFIER_POINTER(attr_name));
-
     hpl::tree_code code = TREE_CODE(*node);
 
     if (code == FUNCTION_DECL) {
@@ -77,7 +75,6 @@ handle_attribute(tree* node, tree attr_name, tree attr_args, int flags,
 
     warning(OPT_Wattributes, "%qE applied to non-function", attr_name);
     const char* name = get_tree_code_name(code);
-    std::println("applied to {}", name);
     *no_add_attrs = true;
 
     return NULL_TREE;
@@ -126,16 +123,13 @@ struct pass1 final : gcc::gimple_opt_pass {
 
     auto execute(function* fun) -> unsigned int final
     {
-      std::println("Executing pass1");
 
       union tree_node* decl = fun->decl;
       union tree_node* fun_attrs = DECL_ATTRIBUTES(decl);
       bool has_attr = lookup_attribute(attr_name, fun_attrs);
       if (!has_attr) {
-        std::println("Function doesn't have attr");
         return 0;
       }
-      std::println("Function has attr");
 
       basic_block bb;
       FOR_ALL_BB_FN(bb, fun) {
@@ -145,18 +139,17 @@ struct pass1 final : gcc::gimple_opt_pass {
           {
             gimple* stmt = gsi_stmt(gsit);
 
-            if (!stmt) {
-                std::println("null stmt");
-                continue;
-            }
-
             bool call = is_gimple_call(stmt);
             bool builtin = gimple_call_builtin_p(stmt);
             if (!call || !builtin) {
-                std::println("stmt was not builtin call");
                 continue;
             }
-            std::println("stmt was builtin call");
+
+            tree fndecl = gimple_call_fndecl(stmt);
+            const built_in_function fncode = DECL_FUNCTION_CODE(fndecl);
+            if (fncode == BUILT_IN_MALLOC) {
+                error("malloc() used in noalloc function");
+            }
           }
       }
 
@@ -180,7 +173,6 @@ plugin_init(hpl::plugin_name_args* plugin_info,
 
     const std::string_view plugin_name = plugin_info->base_name;
     const char* name_chars = plugin_name.data();
-    std::println("Using plugin: {}", plugin_name);
 
     { // register info
       constexpr plugin_event event = PLUGIN_INFO;
