@@ -29,21 +29,13 @@
 #include "attribs.h"
 #include "diagnostic-core.h"
 
-#include "attrs/noalloc.h"
+#include "noalloc.h"
+#include "hpl_utils.h"
+#include "hpl_types.h"
 
 int plugin_is_GPL_compatible;
 
 static constexpr std::string_view ver_err = "Plugin is for version {}.{}";
-
-namespace hpl {
-using plugin_info = struct plugin_info;
-using plugin_gcc_version = struct plugin_gcc_version;
-using plugin_name_args = struct plugin_name_args;   
-using attr_spec = struct attribute_spec;
-using scoped_attr_specs = struct scoped_attribute_specs;
-using register_pass_info = struct register_pass_info;
-using tree_code = enum tree_code;
-}
 
 namespace gcc {
 using pass_data = pass_data;
@@ -65,35 +57,9 @@ static hpl::plugin_gcc_version heapless_gcc_ver =
     .configuration_arguments = ""
 };
 
-static auto
-handle_attribute(tree* node, tree attr_name, tree attr_args, int flags,
-                 bool* no_add_attrs) -> tree
-{
-    hpl::tree_code code = TREE_CODE(*node);
-
-    if (code == FUNCTION_DECL) {
-        return NULL_TREE;
-    }
-
-    warning(OPT_Wattributes, "%qE applied to non-function", attr_name);
-    *no_add_attrs = true;
-
-    return NULL_TREE;
-}
-
-static hpl::attr_spec attr1 =
-{
-  .name = hpl::noalloc::attr_name,
-  .min_length = hpl::noalloc::min_length,
-  .max_length = hpl::noalloc::max_length,
-  .decl_required = hpl::noalloc::decl_required,
-  .type_required = hpl::noalloc::type_required,
-  .function_type_required = hpl::noalloc::function_type_required,
-  .affects_type_identity = hpl::noalloc::affects_type_identity,
-  .handler = handle_attribute
+static std::vector<hpl::attr_spec> all_attrs {
+    attr_instance<hpl::noalloc::attr_traits>()
 };
-
-static std::vector<hpl::attr_spec> all_attrs{ attr1 };
 
 static const array_slice<const hpl::attr_spec> attrs{ all_attrs.data(), all_attrs.size() };
 
@@ -104,65 +70,6 @@ register_attributes(void* event_data, void* user_data) -> void
 {
     register_scoped_attributes(specs);
 }
-
-static const gcc::pass_data pass1_data {
-  .type = GIMPLE_PASS,
-  .name = "pass1",
-  .optinfo_flags = OPTGROUP_NONE,
-  .tv_id = TV_NONE,
-  .properties_required = PROP_gimple_any,
-  .properties_provided = 0,
-  .properties_destroyed = 0,
-  .todo_flags_start = 0,
-  .todo_flags_finish = 0
-};
-
-struct pass1 final : gcc::gimple_opt_pass {
-    explicit pass1(gcc::context* ctx)
-    : gcc::gimple_opt_pass(pass1_data, ctx) { }
-
-    auto
-    execute(function* fun) -> unsigned int final
-    {
-
-      union tree_node* decl = fun->decl;
-      union tree_node* fun_attrs = DECL_ATTRIBUTES(decl);
-      bool has_attr = lookup_attribute(hpl::noalloc::attr_name, fun_attrs);
-      if (!has_attr) {
-        return 0;
-      }
-
-      basic_block bb;
-      FOR_ALL_BB_FN(bb, fun) {
-          gimple_stmt_iterator gsit;
-
-          for (gsit = gsi_start_bb(bb); !gsi_end_p(gsit); gsi_next(&gsit))
-          {
-            gimple* stmt = gsi_stmt(gsit);
-
-            bool call = is_gimple_call(stmt);
-            bool builtin = gimple_call_builtin_p(stmt);
-            if (!call || !builtin) {
-                continue;
-            }
-
-            tree fndecl = gimple_call_fndecl(stmt);
-            const built_in_function fncode = DECL_FUNCTION_CODE(fndecl);
-            if (fncode == BUILT_IN_MALLOC) {
-              error("malloc() used in %s function", hpl::noalloc::attr_name);
-            }
-          }
-      }
-
-      return 0;
-    }
-
-    auto
-    clone() -> pass1* final
-    {
-      return this;
-    }
-};
 
 auto
 plugin_init(hpl::plugin_name_args* plugin_info,
@@ -191,7 +98,7 @@ plugin_init(hpl::plugin_name_args* plugin_info,
 
     { // register passes
         auto* gcc_global_context = g;
-        auto* pass = new pass1(gcc_global_context);
+        auto* pass = new hpl::noalloc::pass_driver(gcc_global_context);
         // TODO: check when is best to run this pass
         hpl::register_pass_info pass_info {
           .pass = pass,
