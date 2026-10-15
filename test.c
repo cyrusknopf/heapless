@@ -1,11 +1,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-[[heapless::attr1]] volatile void* allocating() {
+[[heapless::noalloc]] volatile void* allocating() {
   return malloc(100);
 }
 
-[[heapless::attr1]] volatile void* nonallocating() {
+[[heapless::noalloc]] volatile void* nonallocating() {
   return NULL;
 }
 

@@ -80,7 +80,7 @@ handle_attribute(tree* node, tree attr_name, tree attr_args, int flags,
     return NULL_TREE;
 }
 
-const static char* const attr_name = "attr1\0";
+const static char* const attr_name = "noalloc\0";
 static hpl::attr_spec attr1 =
 {
   .name = attr_name,
@@ -148,7 +148,7 @@ struct pass1 final : gcc::gimple_opt_pass {
             tree fndecl = gimple_call_fndecl(stmt);
             const built_in_function fncode = DECL_FUNCTION_CODE(fndecl);
             if (fncode == BUILT_IN_MALLOC) {
-                error("malloc() used in noalloc function");
+                error("malloc() used in %s function", attr_name);
             }
           }
       }
