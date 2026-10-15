@@ -1,6 +1,9 @@
 PLUGIN=heapless.so
 SOURCES=\
         heapless.cpp \
+        noalloc.h    \
+        hpl_types.h  \
+		hpl_utils.h  \
 		$(END)
 
 # Common makefile to be included from all other makefiles

@@ -1,8 +1,13 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+void other(int x) {
+  volatile void* y = malloc(x);
+}
+
 [[heapless::noalloc]] volatile void* allocating() {
-  return malloc(100);
+  other(10);
+  return NULL;
 }
 
 [[heapless::noalloc]] volatile void* nonallocating() {

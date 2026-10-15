@@ -12,8 +12,9 @@
 #include <context.h>
 #include <diagnostic-core.h>
 
-#include <attribs.h>
+#include <stringpool.h>
 
+#include <attribs.h>
 #include <dumpfile.h>
 
 #include "hpl_types.h"
@@ -43,6 +44,9 @@ handle_attribute(tree* node, tree attr_name, tree attr_args, int flags,
 namespace hpl::noalloc {
 
 struct attr_traits {
+  attr_traits() = delete;
+  ~attr_traits() = delete;
+
   constexpr static char* const attr_name = "noalloc\0";
   constexpr static int min_length = 0;
   constexpr static int max_length = 0;
@@ -55,16 +59,56 @@ struct attr_traits {
 };
 
 struct pass_traits {
+  pass_traits() = delete;
+  ~pass_traits() = delete;
+
   constexpr static auto type = GIMPLE_PASS;
   constexpr static char* const pass_name = "noalloc_pass";
   constexpr static auto opt_flags = OPTGROUP_NONE;
   constexpr static auto tv_id = TV_NONE;
   constexpr static auto props_required = PROP_gimple_any;
-  constexpr static auto props_provided = 0;
-  constexpr static auto props_destroyed = 0;
-  constexpr static auto todo_flags_start = 0;
-  constexpr static auto todo_flags_finish = 0;
+  constexpr static uint8_t props_provided = 0;
+  constexpr static uint8_t props_destroyed = 0;
+  constexpr static uint8_t todo_flags_start = 0;
+  constexpr static uint8_t todo_flags_finish = 0;
 };
+
+static auto
+check_func(function* fun) -> bool
+{
+  basic_block bb = nullptr;
+  FOR_ALL_BB_FN(bb, fun)
+  {
+    gimple_stmt_iterator gsit{};
+    for (gsit = gsi_start_bb(bb); !gsi_end_p(gsit); gsi_next(&gsit)) {
+      gimple* stmt = gsi_stmt(gsit);
+      bool call = is_gimple_call(stmt);
+      bool builtin = gimple_call_builtin_p(stmt);
+
+      if (call and not builtin) {
+        tree fndecl = gimple_call_fndecl(stmt);
+        struct tree_function_decl tree_fn = fndecl->function_decl;
+        function* fun = tree_fn.f;
+        // todo exit early for recursive function
+        check_func(fun);
+        continue;
+      }
+
+      if (not call or not builtin) {
+        continue;
+      }
+
+      tree fndecl = gimple_call_fndecl(stmt);
+      const built_in_function fncode = DECL_FUNCTION_CODE(fndecl);
+      if (fncode == BUILT_IN_MALLOC) {
+        location_t loc = gimple_location(stmt);
+        error_at(loc, "malloc() used in %s function",
+                 hpl::noalloc::attr_traits::attr_name);
+      }
+    }
+  }
+    return true;
+}
 
 struct pass_driver final : public gcc::gimple_opt_pass
 {
@@ -77,30 +121,13 @@ struct pass_driver final : public gcc::gimple_opt_pass
   {
     union tree_node* decl = fun->decl;
     union tree_node* fun_attrs = DECL_ATTRIBUTES(decl);
-    bool has_attr = lookup_attribute(hpl::noalloc::attr_traits::attr_name, fun_attrs);
+    bool has_attr =
+        lookup_attribute(hpl::noalloc::attr_traits::attr_name, fun_attrs);
     if (!has_attr) {
       return 0;
     }
-    basic_block bb = nullptr;
-    FOR_ALL_BB_FN(bb, fun) {
-        gimple_stmt_iterator gsit{};
-        for (gsit = gsi_start_bb(bb); !gsi_end_p(gsit); gsi_next(&gsit))
-        {
-          gimple* stmt = gsi_stmt(gsit);
-          bool call = is_gimple_call(stmt);
-          bool builtin = gimple_call_builtin_p(stmt);
-          if (!call || !builtin) {
-              continue;
-          }
-          tree fndecl = gimple_call_fndecl(stmt);
-          const built_in_function fncode = DECL_FUNCTION_CODE(fndecl);
-          if (fncode == BUILT_IN_MALLOC) {
-            location_t loc = gimple_location(stmt);
-            error_at(loc, "malloc() used in %s function",
-                     hpl::noalloc::attr_traits::attr_name);
-          }
-        }
-    }
+
+    check_func(fun);
     return 0;
   }
 
