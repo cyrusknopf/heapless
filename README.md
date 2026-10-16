@@ -4,6 +4,8 @@ Compile-time restriction on dynamic memory allocations.
 
 Currently only supports explicit calls to malloc.
 
+**example usage**
+
 ~~~c
 [[heapless::noalloc]] void* allocating(size_t sz)
 {
@@ -16,6 +18,14 @@ error: malloc() used in noalloc function
     4 | [[heapless::noalloc]] void* allocating(size_t sz) {
       |
 ~~~
+
+
+**building**
+
+`make` produces top-level `heapless.so`
+
+`make test` runs expect-tests in `test/`
+
 
 **Resources and references**
 - https://stephanfr.com/2013/05/19/building-gcc-plugins-part-1-c-11-generalized-attributes/
