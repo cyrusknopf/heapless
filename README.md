@@ -1,7 +1,8 @@
 **heapless**
 
 Compile-time restriction on dynamic memory allocations.
-Currently only supports explicit calls to malloc in annotated functions.
+
+Currently only supports explicit calls to malloc.
 
 ~~~c
 [[heapless::noalloc]] void* allocating(size_t sz)
