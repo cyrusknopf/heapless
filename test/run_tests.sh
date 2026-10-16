@@ -8,6 +8,7 @@ for testdir in test/*/; do
     echo -e "${GREEN}$testdir" passed${NOCOL};
   else
     echo -e "${RED}$testdir" failed${NOCOL};
+    $CC -fplugin=./$PLUGIN -c "$testdir"test.c 2>&1
   fi
 done
 
