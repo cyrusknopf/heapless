@@ -29,9 +29,9 @@
 #include "attribs.h"
 #include "diagnostic-core.h"
 
-#include "noalloc.h"
-#include "hpl_utils.h"
-#include "hpl_types.h"
+#include "heapless/noalloc.h"
+#include "heapless/hpl_utils.h"
+#include "heapless/hpl_types.h"
 
 int plugin_is_GPL_compatible;
 

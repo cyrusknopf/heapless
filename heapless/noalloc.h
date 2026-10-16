@@ -43,11 +43,8 @@ handle_attribute(tree* node, tree attr_name, tree attr_args, int flags,
 
 namespace hpl::noalloc {
 
-struct attr_traits {
-  attr_traits() = delete;
-  ~attr_traits() = delete;
-
-  constexpr static char* const attr_name = "noalloc\0";
+struct attr_traits : mixin_static_trait {
+  constexpr static const char* const attr_name = "noalloc";
   constexpr static int min_length = 0;
   constexpr static int max_length = 0;
   constexpr static bool decl_required = true;
@@ -58,19 +55,16 @@ struct attr_traits {
   constexpr static handler_func handler = handle_attribute;
 };
 
-struct pass_traits {
-  pass_traits() = delete;
-  ~pass_traits() = delete;
-
+struct pass_traits  : mixin_static_trait {
   constexpr static auto type = GIMPLE_PASS;
-  constexpr static char* const pass_name = "noalloc_pass";
+  constexpr static const char* pass_name = "noalloc_pass";
   constexpr static auto opt_flags = OPTGROUP_NONE;
   constexpr static auto tv_id = TV_NONE;
   constexpr static auto props_required = PROP_gimple_any;
-  constexpr static uint8_t props_provided = 0;
-  constexpr static uint8_t props_destroyed = 0;
-  constexpr static uint8_t todo_flags_start = 0;
-  constexpr static uint8_t todo_flags_finish = 0;
+  constexpr static unsigned int props_provided = 0;
+  constexpr static unsigned int props_destroyed = 0;
+  constexpr static unsigned int todo_flags_start = 0;
+  constexpr static unsigned int todo_flags_finish = 0;
 };
 
 static auto

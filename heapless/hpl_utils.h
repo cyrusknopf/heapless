@@ -7,6 +7,11 @@
 
 #include "hpl_types.h"
 
+struct mixin_static_trait {
+    mixin_static_trait() = delete;
+    ~mixin_static_trait() = delete;
+};
+
 template <typename AttrT> auto
 consteval attr_instance() -> hpl::attr_spec
 {
