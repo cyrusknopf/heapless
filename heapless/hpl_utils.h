@@ -7,9 +7,9 @@
 
 #include "hpl_types.h"
 
-struct mixin_static_trait {
-    mixin_static_trait() = delete;
-    ~mixin_static_trait() = delete;
+struct static_trait_mixin {
+    static_trait_mixin() = delete;
+    ~static_trait_mixin() = delete;
 };
 
 template <typename AttrT> auto

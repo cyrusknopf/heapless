@@ -43,7 +43,7 @@ handle_attribute(tree* node, tree attr_name, tree attr_args, int flags,
 
 namespace hpl::noalloc {
 
-struct attr_traits : mixin_static_trait {
+struct attr_traits : static_trait_mixin {
   constexpr static const char* const attr_name = "noalloc";
   constexpr static int min_length = 0;
   constexpr static int max_length = 0;
@@ -55,7 +55,7 @@ struct attr_traits : mixin_static_trait {
   constexpr static handler_func handler = handle_attribute;
 };
 
-struct pass_traits  : mixin_static_trait {
+struct pass_traits  : static_trait_mixin {
   constexpr static auto type = GIMPLE_PASS;
   constexpr static const char* pass_name = "noalloc_pass";
   constexpr static auto opt_flags = OPTGROUP_NONE;
