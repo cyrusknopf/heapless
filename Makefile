@@ -36,4 +36,4 @@ clean:
 	rm -f *.a *.so
 
 test: $(PLUGIN)
-	$(CC) -fplugin=./$(PLUGIN) -c test.c
+	CC="$(CC)" PLUGIN="$(PLUGIN)" ./test/run_tests.sh

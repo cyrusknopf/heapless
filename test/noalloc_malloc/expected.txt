@@ -1,0 +1,4 @@
+test/noalloc_malloc/test.c: In function ‘allocating’:
+test/noalloc_malloc/test.c:6:10: error: malloc() used in noalloc function
+    6 |   return malloc(sz * 10);
+      |          ^~~~~~~~~~~~~~~
