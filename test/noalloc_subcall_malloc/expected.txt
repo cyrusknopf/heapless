@@ -2,3 +2,6 @@ test/noalloc_subcall_malloc/test.c: In function ‘nonallocating’:
 test/noalloc_subcall_malloc/test.c:6:10: error: malloc() used in noalloc function
     6 |   return malloc(sz);
       |          ^~~~~~~~~~
+test/noalloc_subcall_malloc/test.c:11:3: note: allocation occurs in function called here
+   11 |   allocating(sz + 1);
+      |   ^~~~~~~~~~~~~~~~~~

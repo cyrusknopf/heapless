@@ -93,22 +93,26 @@ check_func(function* fun) -> bool
         return false;
       }
 
-      if (not builtin) {
-        struct tree_function_decl tree_fn = fndecl->function_decl;
-        function* sub_fun = tree_fn.f;
-        assert(sub_fun);
-
-        if (sub_fun == fun) continue; // recursive call
-
-        if (!check_func(sub_fun)) return false;
-        continue;
+      if (builtin) {
+        const built_in_function fncode = DECL_FUNCTION_CODE(fndecl);
+        if (fncode == BUILT_IN_MALLOC) {
+          location_t loc = gimple_location(stmt);
+          error_at(loc, "malloc() used in %s function",
+                   hpl::noalloc::attr_traits::attr_name);
+          return false;
+        }
       }
 
-      const built_in_function fncode = DECL_FUNCTION_CODE(fndecl);
-      if (fncode == BUILT_IN_MALLOC) {
+      // user-defined/non-builtin function call
+      struct tree_function_decl tree_fn = fndecl->function_decl;
+      function* sub_fun = tree_fn.f;
+      assert(sub_fun);
+
+      if (sub_fun == fun) continue; // recursive call
+
+      if (!check_func(sub_fun)) {
         location_t loc = gimple_location(stmt);
-        error_at(loc, "malloc() used in %s function",
-                 hpl::noalloc::attr_traits::attr_name);
+        inform(loc, "allocation occurs in function called here");
         return false;
       }
     }
