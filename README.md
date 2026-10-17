@@ -2,7 +2,7 @@
 
 Compile-time restriction on dynamic memory allocations.
 
-Currently only supports explicit calls to malloc.
+See supported cases in `test/`.
 
 **example usage**
 
