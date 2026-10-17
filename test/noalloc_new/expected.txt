@@ -1,1 +1,4 @@
-some error about new
+test/noalloc_new/test.cpp: In function ‘void allocating()’:
+test/noalloc_new/test.cpp:4:27: error: operator new used in noalloc function
+    4 |     volatile int* x = new int;
+      |                           ^~~

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cassert>
+
 #include <gcc-plugin.h>
 
 #include <tree-core.h>
@@ -79,25 +81,33 @@ check_func(function* fun) -> bool
       bool call = is_gimple_call(stmt);
       bool builtin = gimple_call_builtin_p(stmt);
 
-      if (call and not builtin) {
-        tree fndecl = gimple_call_fndecl(stmt);
+      if (not call) continue;
+
+      tree fndecl = gimple_call_fndecl(stmt);
+
+      bool is_new = DECL_IS_OPERATOR_NEW_P(fndecl);
+      if (is_new) {
+        location_t loc = gimple_location(stmt);
+        error_at(loc, "operator new used in %s function",
+                 hpl::noalloc::attr_traits::attr_name);
+        return false;
+      }
+
+      if (not builtin) {
         struct tree_function_decl tree_fn = fndecl->function_decl;
         function* fun = tree_fn.f;
+        assert(fun);
         // todo exit early for recursive function
         check_func(fun);
         continue;
       }
 
-      if (not call or not builtin) {
-        continue;
-      }
-
-      tree fndecl = gimple_call_fndecl(stmt);
       const built_in_function fncode = DECL_FUNCTION_CODE(fndecl);
       if (fncode == BUILT_IN_MALLOC) {
         location_t loc = gimple_location(stmt);
         error_at(loc, "malloc() used in %s function",
                  hpl::noalloc::attr_traits::attr_name);
+        return false;
       }
     }
   }
