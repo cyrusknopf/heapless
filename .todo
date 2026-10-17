@@ -1,3 +1,7 @@
 - cache allocating functions in name-indexed allocating set (ODR should keep this correct)
+
 - ensure recursive functions dont cause infinite loop in pass
+
 - investigate operator new
+
+- invesitage how to handle opaque allocations (e.g. vector push back/ctor)

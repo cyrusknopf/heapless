@@ -36,4 +36,4 @@ clean:
 	rm -f *.a *.so
 
 test: $(PLUGIN)
-	CC="$(CC)" PLUGIN="$(PLUGIN)" ./test/run_tests.sh
+	CXX="$(CXX)" CC="$(CC)" PLUGIN="$(PLUGIN)" ./test/run_tests.sh
