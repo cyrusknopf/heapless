@@ -1,0 +1,4 @@
+test/noalloc_recursive_malloc_stepcase/test.c: In function ‘recursive’:
+test/noalloc_recursive_malloc_stepcase/test.c:7:22: error: malloc() used in noalloc function
+    7 |   volatile void* y = malloc(x);
+      |                      ^~~~~~~~~

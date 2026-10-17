@@ -95,10 +95,12 @@ check_func(function* fun) -> bool
 
       if (not builtin) {
         struct tree_function_decl tree_fn = fndecl->function_decl;
-        function* fun = tree_fn.f;
-        assert(fun);
-        // todo exit early for recursive function
-        check_func(fun);
+        function* sub_fun = tree_fn.f;
+        assert(sub_fun);
+
+        if (sub_fun == fun) continue; // recursive call
+
+        check_func(sub_fun);
         continue;
       }
 
