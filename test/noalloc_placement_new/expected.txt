@@ -1,0 +1,4 @@
+test/noalloc_placement_new/test.cpp: In function ‘void allocating()’:
+test/noalloc_placement_new/test.cpp:7:33: error: operator new used in noalloc function
+    7 |     volatile int* x = new (ptr) int;
+      |                                 ^~~
