@@ -7,18 +7,30 @@ See supported cases in `test/`.
 **example usage**
 
 ~~~c
-[[heapless::noalloc]] void* allocating(size_t sz)
+❯ cat test.c
+#include <stdlib.h>
+#include <stddef.h>
+
+void* allocating(size_t sz)
 {
   return malloc(sz);
 }
 
-❯ gcc -fplugin=./heapless.so -c test.c
-In function ‘allocating’:
-error: malloc() used in noalloc function
-    4 | [[heapless::noalloc]] void* allocating(size_t sz) {
-      |
+[[heapless::noalloc]] void nonallocating(size_t sz)
+{
+  allocating(sz + 1);
+}
 ~~~
-
+```bash
+❯ gcc -fplugin=./heapless.so -c test.c
+test.c: In function ‘nonallocating’:
+test.c:6:10: error: malloc() used in noalloc function
+    6 |   return malloc(sz);
+      |          ^~~~~~~~~~
+test.c:11:3: note: allocation occurs in function called here
+   11 |   allocating(sz + 1);
+      |   ^~~~~~~~~~~~~~~~~~
+```
 
 **building**
 
