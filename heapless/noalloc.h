@@ -100,7 +100,7 @@ check_func(function* fun) -> bool
 
         if (sub_fun == fun) continue; // recursive call
 
-        check_func(sub_fun);
+        if (!check_func(sub_fun)) return false;
         continue;
       }
 
@@ -113,7 +113,7 @@ check_func(function* fun) -> bool
       }
     }
   }
-    return true;
+  return true;
 }
 
 struct pass_driver final : public gcc::gimple_opt_pass
