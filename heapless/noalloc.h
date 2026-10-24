@@ -11,6 +11,8 @@
 #include <gimple.h>
 #include <gimple-iterator.h>
 
+#include <cgraph.h>
+
 #include <context.h>
 #include <diagnostic-core.h>
 
@@ -73,7 +75,8 @@ static auto
 check_func(function* fun) -> bool
 {
   basic_block bb = nullptr;
-  FOR_ALL_BB_FN(bb, fun)
+  // FOR_ALL_BB_FUN
+  for (bb = ((fun)->cfg->x_entry_block_ptr); bb; bb = bb->next_bb)
   {
     gimple_stmt_iterator gsit{};
     for (gsit = gsi_start_bb(bb); !gsi_end_p(gsit); gsi_next(&gsit)) {
@@ -103,10 +106,24 @@ check_func(function* fun) -> bool
         }
       }
 
+      cgraph_node* called = cgraph_node::get(fndecl);
+      if (!called) {
+        location_t loc = gimple_location(stmt);
+        error_at(loc, "unable to prove this function is allocation free");
+        return false;
+      }
+
       // user-defined/non-builtin function call
-      struct tree_function_decl tree_fn = fndecl->function_decl;
-      function* sub_fun = tree_fn.f;
+      called->get_untransformed_body();
+      function* sub_fun = DECL_STRUCT_FUNCTION(fndecl);
       assert(sub_fun);
+
+      if (!sub_fun->cfg) {
+        location_t loc = gimple_location(stmt);
+        inform(loc, "internal error occured here");
+        internal_error("called function has no cfg");
+        continue;
+      }
 
       if (sub_fun == fun) continue; // recursive call
 
